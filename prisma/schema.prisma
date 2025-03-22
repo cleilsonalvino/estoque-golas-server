@@ -16,8 +16,8 @@ model Gola {
 model Polo {
   codigo String @id
   cor    String
-  Gola   Gola?
-  Punho  Punho?
+  gola   Gola?
+  punho  Punho?
 }
 
 model Punho {
