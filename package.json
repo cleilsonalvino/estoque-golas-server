@@ -4,12 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "npm run build-backend && npm run server",  
-    "build-backend": "prisma generate",  
-    "server": "node api.js", 
-    "lint": "eslint .", 
-    "dev": "nodemon api.js",  
-    "preview": "echo 'Preview não disponível no backend'" 
+    "start": "node api.js",
+    "build": "prisma generate",
+    "server": "node api.js",
+    "dev": "nodemon api.js",
+    "lint": "eslint .",
+    "preview": "echo 'Preview não disponível no backend'"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",
@@ -17,7 +17,12 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "prisma": "^6.5.0",
-    "nodemon": "^2.0.22" 
+    "prisma": "^6.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
