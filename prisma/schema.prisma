@@ -1,0 +1,40 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model usuarios {
+  id Int @id @default(autoincrement())
+  nome String @unique
+  senha String @default("12345")
+  Eadmin Int
+}
+
+model Polo {
+  codigo    String  @id // Chave primária (ex.: "POLO 01")
+  cor       String  // ex.: "AMARELO"
+  gola      Gola?   // Relação 1:1, opcional no banco, mas obrigatória na lógica
+  punho     Punho?  // Relação 1:1, opcional no banco, mas obrigatória na lógica
+}
+
+model Gola {
+  poloCodigo String  @id // Chave primária, igual ao codigo de Polo
+  quantidade Int     // Quantidade de golas
+  polo       Polo    @relation(fields: [poloCodigo], references: [codigo])
+}
+
+model Punho {
+  poloCodigo String  @id // Chave primária, igual ao codigo de Polo
+  quantidade Int     // Quantidade de punhos
+  polo       Polo    @relation(fields: [poloCodigo], references: [codigo])
+}
