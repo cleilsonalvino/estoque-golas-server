@@ -4,20 +4,20 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "npm run server",
-    "server": "node api.js",
-    "dev": "vite --host",
-    "build": "prisma generate && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "start": "npm run build-backend && npm run server",  
+    "build-backend": "prisma generate",  
+    "server": "node api.js", 
+    "lint": "eslint .", 
+    "dev": "nodemon api.js",  
+    "preview": "echo 'Preview não disponível no backend'" 
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",
     "@prisma/extension-accelerate": "^1.3.0",
-    "concurrently": "^9.1.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "prisma": "^6.5.0"
+    "prisma": "^6.5.0",
+    "nodemon": "^2.0.22" 
   }
 }
