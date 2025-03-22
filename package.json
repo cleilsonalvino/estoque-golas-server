@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node api.js",
-    "build": "prisma generate",
+    "build": "npx prisma generate",
     "server": "node api.js",
     "dev": "nodemon api.js",
     "lint": "eslint .",
