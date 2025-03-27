@@ -30,14 +30,40 @@ app.post("/login", async (req, res) => {
   }
 });
 
+app.get("/usuarios", async (req, res) => {
+  try {
+    const usuarios = await prisma.usuarios.findMany();
+    res.status(200).json(usuarios);
+  } catch (error) {
+    console.error("Erro ao buscar usuários:", error);
+    res.status(500).json({ error: "Erro interno ao buscar usuários" });
+  }
+});
+
+app.delete("/usuarios/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const usuario = await prisma.usuarios.delete({
+      where: {
+        id: parseInt(id), // Converte o ID para inteiro
+      },
+    });
+    res.status(200).json({ message: "Usuário excluído com sucesso", usuario });
+  } catch (error) {
+    console.error("Erro ao excluir usuário:", error);
+    res.status(400).json({ error: "Erro ao excluir usuário" });
+  }
+});
+
 app.post('/novousuario', async (req, res) => {
-  const { nome, eadmin } = req.body;
+  const { nome, Eadmin } = req.body;
 
   try {
     const novoUsuario = await prisma.usuarios.create({
       data: { 
         nome,
-        eadmin // Certifique-se que está igual ao modelo do Prisma
+        Eadmin // Certifique-se que está igual ao modelo do Prisma
       }
     });
 
