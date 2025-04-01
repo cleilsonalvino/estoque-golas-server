@@ -215,7 +215,7 @@ async function startServer() {
   try {
     await prisma.$connect();
     console.log('Banco conectado!');
-    app.listen(4000, () => console.log('Servidor rodando na porta 3000'));
+    app.listen(4000, () => console.log('Servidor rodando na porta 4000'));
   } catch (error) {
     console.error('Erro ao conectar ao banco:', error);
     process.exit(1);
