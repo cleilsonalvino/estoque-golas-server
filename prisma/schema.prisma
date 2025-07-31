@@ -18,6 +18,7 @@ model Polo {
   cor    String
   gola   Gola?
   punho  Punho?
+  foto     String?
 }
 
 model Punho {

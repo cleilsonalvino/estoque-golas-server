@@ -1,12 +1,33 @@
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
+import multer from 'multer'; // <-- Adicionar import do multer
+import path from 'path';     // <-- Adicionar import do path (nativo do Node.js)
+import fs from 'fs'; 
 
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(cors()); 
 app.use(express.json());
+
+app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
+
+// --- ADICIONAR ESTA SEÇÃO: CONFIGURAÇÃO DO MULTER ---
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = 'public/uploads/';
+    // Garante que o diretório de uploads exista
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'polo-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage: storage });
 
 app.post("/login", async (req, res) => {
   const { nome, senha } = req.body;
@@ -74,18 +95,24 @@ app.post('/novousuario', async (req, res) => {
   }
 });
 
-app.post('/polos', async (req, res) => {
+app.post('/polos', upload.single('foto'), async (req, res) => {
   try {
     const { codigo, cor, gola, punho } = req.body;
 
+    // O arquivo vem em req.file, os outros dados em req.body
+    if (!req.file) {
+      return res.status(400).json({ message: 'A foto do polo é obrigatória.' });
+    }
+
     if (!codigo || !cor || !gola?.quantidade || !punho?.quantidade) {
-      throw new Error('Todos os campos (codigo, cor, gola.quantidade, punho.quantidade) são obrigatórios');
+      return res.status(400).json({ message: 'Todos os campos de texto são obrigatórios.' });
     }
 
     const novoPolo = await prisma.polo.create({
       data: {
         codigo,
         cor,
+        foto: `/uploads/${req.file.filename}`, // Salva o caminho da foto no banco
         gola: { create: { quantidade: Number(gola.quantidade) } },
         punho: { create: { quantidade: Number(punho.quantidade) } }
       },
@@ -94,22 +121,61 @@ app.post('/polos', async (req, res) => {
 
     res.status(201).json({ message: 'Polo criado com sucesso', data: novoPolo });
   } catch (error) {
+    console.error("Erro ao criar Polo:", error);
     res.status(400).json({ message: 'Erro ao criar Polo', error: error.message });
   }
 });
+// Em api.js
 
-app.post('/atualizar-polo/:codigo', async (req, res) => {
+// --- ROTA DE ATUALIZAÇÃO DE POLO (CORRIGIDA) ---
+app.post('/atualizar-polo/:codigo', upload.single('foto'), async (req, res) => {
   const { codigo } = req.params;
-  const { cor, gola, punho } = req.body;
+  // Agora recebemos os valores diretamente, não mais objetos 'gola' e 'punho'
+  const { cor, golaQuantidade, punhoQuantidade } = req.body;
 
   try {
+    const dataToUpdate = {
+      cor, // Atualiza a cor
+    };
+
+    // --- MUDANÇA PRINCIPAL AQUI ---
+    // Verificamos se a quantidade foi enviada e usamos a sintaxe correta do Prisma
+    if (golaQuantidade !== undefined) {
+      dataToUpdate.gola = {
+        update: {
+          // A sintaxe correta é aninhar a atualização dentro de um objeto 'data'
+          data: {
+            quantidade: Number(golaQuantidade) 
+          }
+        }
+      };
+    }
+
+    if (punhoQuantidade !== undefined) {
+      dataToUpdate.punho = {
+        update: {
+          data: { 
+            quantidade: Number(punhoQuantidade)
+          }
+        }
+      };
+    }
+    
+    // A lógica para a foto permanece a mesma
+    if (req.file) {
+      const poloAntigo = await prisma.polo.findUnique({ where: { codigo }, select: { foto: true } });
+      if (poloAntigo && poloAntigo.foto) {
+        const oldFotoPath = path.join(process.cwd(), 'public', poloAntigo.foto);
+        if (fs.existsSync(oldFotoPath)) {
+            fs.unlinkSync(oldFotoPath);
+        }
+      }
+      dataToUpdate.foto = `/uploads/${req.file.filename}`;
+    }
+
     const poloAtualizado = await prisma.polo.update({
       where: { codigo },
-      data: {
-        cor,
-        gola: gola ? { update: { quantidade: Number(gola.quantidade) } } : undefined,
-        punho: punho ? { update: { quantidade: Number(punho.quantidade) } } : undefined
-      },
+      data: dataToUpdate,
       include: { gola: true, punho: true }
     });
 
@@ -120,7 +186,7 @@ app.post('/atualizar-polo/:codigo', async (req, res) => {
   }
 });
 
-//teste
+
 
 app.get('/filtrar/:cor', async (req, res) => {
   const { cor } = req.params;
@@ -161,6 +227,7 @@ app.get('/trazer-dados', async (req, res) => {
       select: {
         codigo: true,
         cor: true,
+        foto: true, // <-- ADICIONAR este campo para enviar ao frontend
         gola: { select: { quantidade: true } },
         punho: { select: { quantidade: true } }
       },
