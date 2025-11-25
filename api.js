@@ -11,6 +11,10 @@ const prisma = new PrismaClient();
 app.use(cors()); 
 app.use(express.json());
 
+app.use('/', async (req, res) =>{
+  res.send('API funcionando!')
+})
+
 app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
 
 // --- ADICIONAR ESTA SEÇÃO: CONFIGURAÇÃO DO MULTER ---
