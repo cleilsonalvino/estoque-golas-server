@@ -11,7 +11,7 @@ const prisma = new PrismaClient();
 app.use(cors()); 
 app.use(express.json());
 
-app.use('/', async (req, res) =>{
+app.get('/', async (req, res) =>{
   res.send('API funcionando!')
 })
 
